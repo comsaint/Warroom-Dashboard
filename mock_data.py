@@ -3,11 +3,11 @@ import numpy as np
 from datetime import datetime, timedelta
 import config
 
-def generate_mock_visits_data(days=90):
+def generate_mock_visits_data(days=365):
     """
     產生一個 mock DataFrame，包含過去 days 天、四個 Property，每天每個 Property 一筆資料。
     """
-    properties = ["GM", "Casino", "BW", "F&B"]
+    properties = ["GM Property Total", "BW Property Total", "SW Property Total", "GM Casino Total"]
     today = datetime.today()
     data = []
     for i in range(days):
@@ -15,9 +15,9 @@ def generate_mock_visits_data(days=90):
         for prop in properties:
             visits = np.random.randint(20000, 50000)
             data.append({
-                "Date": day,
-                "Property": prop,
-                "Visits": visits
+                "ReportGroup": prop,
+                "GamingDate": day,
+                "Total HeadCount": visits,
             })
     df = pd.DataFrame(data)
     return df
