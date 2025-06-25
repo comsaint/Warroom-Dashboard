@@ -3,7 +3,7 @@ import numpy as np
 from datetime import datetime, timedelta
 import config
 
-def generate_mock_visits_data(days=365):
+def generate_mock_visits_data(days=60):
     """
     產生一個 mock DataFrame，包含過去 days 天、四個 Property，每天每個 Property 一筆資料。
     """

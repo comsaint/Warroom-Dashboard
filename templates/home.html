@@ -7,17 +7,104 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { background: #222; color: #fff; }
-        .metric-card { margin-bottom: 1rem; padding: 1rem; background: #333; border-radius: 1rem; }
+        .carousel-item { padding: 2rem; }
+        .container-fluid { max-width: 1400px; } /* Give some max width */
+
+        /* Styles for Page 1: Visitation Overview */
+        .metric-card { margin-bottom: 1rem; padding: 1rem; background: #333; border-radius: 1rem; height: 100%; }
         .metric-title { font-size: 1.2rem; }
         .metric-value { font-size: 2rem; font-weight: bold; }
-        .carousel-item { padding: 2rem; }
+        #visitationChart { max-height: 400px; }
+
+        /* Styles for Page 2: Social Feed (Xiaohongshu style) */
+        .search-bar-container {
+            padding: 0 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .search-bar-fake {
+            background-color: #333;
+            border-radius: 25px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: text;
+        }
+        .search-icon {
+            color: #888;
+        }
+        .keyword-pill {
+            background-color: #444;
+            color: #eee;
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+        }
+
+        .masonry-grid {
+            column-count: 5; /* 5 columns to match XHS layout */
+            column-gap: 0.5rem; /* Smaller gap for more compact layout */
+        }
+        .masonry-item {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 0.5rem; /* Smaller margin for more compact layout */
+            background: #333;
+            border-radius: 0.75rem; /* Slightly smaller border radius */
+            overflow: hidden;
+            break-inside: avoid; /* Prevents items from breaking across columns */
+        }
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .card-content {
+            padding: 0.5rem; /* Smaller padding for more compact cards */
+        }
+        .card-title {
+            font-size: 0.75rem; /* Smaller font size */
+            margin-bottom: 0.25rem; /* Smaller margin */
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2; /* Limit to 2 lines */
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.2rem; /* Even smaller gap */
+            font-size: 0.65rem; /* Even smaller font size */
+            color: #ccc;
+        }
+        .avatar {
+            width: 16px; /* Much smaller avatar like XHS */
+            height: 16px;
+            border-radius: 50%;
+        }
+        
+        /* Responsive adjustments for masonry grid */
+        @media (max-width: 1400px) {
+            .masonry-grid { column-count: 4; }
+        }
+        @media (max-width: 1200px) {
+            .masonry-grid { column-count: 3; }
+        }
+        @media (max-width: 992px) {
+            .masonry-grid { column-count: 2; }
+        }
+        @media (max-width: 576px) {
+            .masonry-grid { column-count: 1; }
+        }
+
     </style>
 </head>
 <body>
     <div class="container-fluid">
         <h1 class="text-center my-4">Warroom Dashboard</h1>
         <h4 class="text-center mb-4">Latest Date: <span id="latest-date">Loading...</span></h4>
-        <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="10000">
+        <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
             <div class="carousel-inner">
 
                 <!-- Page 1: Visitation Overview -->
@@ -25,11 +112,9 @@
                     {% include 'page_visitation_overview.html' %}
                 </div>
 
-                <!-- Page 2: Casino Visitation (Example of another page) -->
+                <!-- Page 2: Social Media Feed -->
                 <div class="carousel-item">
-                     <div class="row justify-content-center" id="casino-visitation-cards">
-                        <div class="col-12 text-center">This is the second page. You can add other charts here.</div>
-                    </div>
+                    {% include 'page_social_feed.html' %}
                 </div>
 
             </div>
@@ -41,7 +126,15 @@
             
             let visitationChart = null;
 
-            const updateDashboard = () => {
+            const updateDashboardPage1 = () => {
+                const scorecardContainer = document.getElementById('scorecards-container');
+                const chartCanvas = document.getElementById('visitationChart');
+
+                // Only fetch data if the elements for page 1 exist
+                if (!scorecardContainer || !chartCanvas) {
+                    return;
+                }
+
                 fetch('/api/data')
                     .then(response => {
                         if (!response.ok) {
@@ -50,68 +143,62 @@
                         return response.json();
                     })
                     .then(data => {
-                        console.log("Data received from /api/data:", data); // For debugging
+                        console.log("Data received for Page 1:", data); 
 
                         // Update latest date
                         document.getElementById('latest-date').textContent = data.latest_date;
 
                         // Update Scorecards
-                        const scorecardContainer = document.getElementById('scorecards-container');
-                        if (scorecardContainer) {
-                            scorecardContainer.innerHTML = '';
-                            if (data.scorecard_data && data.scorecard_data.length > 0) {
-                                data.scorecard_data.forEach(metric => {
-                                    scorecardContainer.innerHTML += `
-                                        <div class="col">
-                                            <div class="metric-card h-100">
-                                                <div class="metric-title">${metric.ReportGroup}</div>
-                                                <div class="metric-value">${metric['Total HeadCount'].toLocaleString()}</div>
-                                            </div>
+                        scorecardContainer.innerHTML = '';
+                        if (data.scorecard_data && data.scorecard_data.length > 0) {
+                            data.scorecard_data.forEach(metric => {
+                                scorecardContainer.innerHTML += `
+                                    <div class="col">
+                                        <div class="metric-card">
+                                            <div class="metric-title">${metric.ReportGroup}</div>
+                                            <div class="metric-value">${metric['Total HeadCount'].toLocaleString()}</div>
                                         </div>
-                                    `;
-                                });
-                            } else {
-                                scorecardContainer.innerHTML = '<div class="col-12 text-center">No scorecard data available.</div>';
-                            }
+                                    </div>
+                                `;
+                            });
+                        } else {
+                            scorecardContainer.innerHTML = '<div class="col-12 text-center">No scorecard data available.</div>';
                         }
 
                         // Update or Create Chart
-                        const chartCanvas = document.getElementById('visitationChart');
-                        if (chartCanvas) {
-                            const ctx = chartCanvas.getContext('2d');
-                            const colors = ['#4bc0c0', '#ff6384', '#36a2eb', '#ffce56', '#9966ff', '#ff9f40'];
-                            if (data.chart_data && data.chart_data.datasets) {
-                                data.chart_data.datasets.forEach((dataset, index) => {
-                                    dataset.borderColor = colors[index % colors.length];
-                                });
-                            }
-                            
-                            if(visitationChart) {
-                                visitationChart.data.labels = data.chart_data.dates;
-                                visitationChart.data.datasets = data.chart_data.datasets;
-                                visitationChart.update();
-                            } else {
-                                visitationChart = new Chart(ctx, {
-                                    type: 'line',
-                                    data: data.chart_data,
-                                    options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
-                                        plugins: { legend: { position: 'top', labels: { color: '#fff' } }, title: { display: true, text: 'Visitation Trend (Last 30 Days)', color: '#fff', font: { size: 18 } } },
-                                        scales: { x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
-                                    }
-                                });
-                            }
+                        const ctx = chartCanvas.getContext('2d');
+                        const colors = ['#4bc0c0', '#ff6384', '#36a2eb', '#ffce56', '#9966ff', '#ff9f40'];
+                        if (data.chart_data && data.chart_data.datasets) {
+                            data.chart_data.datasets.forEach((dataset, index) => {
+                                dataset.borderColor = colors[index % colors.length];
+                            });
+                        }
+                        
+                        if(visitationChart) {
+                            visitationChart.data.labels = data.chart_data.dates;
+                            visitationChart.data.datasets = data.chart_data.datasets;
+                            visitationChart.update();
+                        } else {
+                            visitationChart = new Chart(ctx, {
+                                type: 'line',
+                                data: data.chart_data,
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { position: 'top', labels: { color: '#fff' } }, title: { display: true, text: 'Visitation Trend (Last 30 Days)', color: '#fff', font: { size: 18 } } },
+                                    scales: { x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
+                                }
+                            });
                         }
                     })
                     .catch(error => {
-                        console.error('Error fetching or processing dashboard data:', error);
+                        console.error('Error fetching or processing dashboard data for page 1:', error);
                         document.getElementById('latest-date').textContent = 'Error loading data';
                     });
             };
 
-            updateDashboard();
-            setInterval(updateDashboard, 60000);
+            updateDashboardPage1();
+            setInterval(updateDashboardPage1, 60000);
         });
     </script>
 </body>
