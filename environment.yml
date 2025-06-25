@@ -1,4 +1,4 @@
-name: warroom
+name: warroom-dashboard
 channels:
   - conda-forge
   - defaults
@@ -47,4 +47,6 @@ dependencies:
   - werkzeug=3.1.3=pyhd8ed1ab_1
   - wheel=0.45.1=pyhd8ed1ab_1
   - zipp=3.23.0=pyhd8ed1ab_0
+  - pip:
+    - python-dotenv
 prefix: C:\Users\long.pun\miniconda3\envs\warroom
