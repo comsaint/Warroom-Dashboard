@@ -24,7 +24,12 @@ class PropertyVisitationProcessor(AbstractPageMetricOverviewProcessor):
 
         latest_date = self.df['GamingDate'].max()
         latest_data = self.df[self.df['GamingDate'] == latest_date]
-        scorecard_data = latest_data.to_dict(orient='records')
+        scorecard_data = [
+            {'GM Property HeadCount': latest_data[latest_data['ReportGroup'] == 'GM Property Total']['Total HeadCount'].sum()},
+            {'GM Casino HeadCount': latest_data[latest_data['ReportGroup'] == 'GM Casino Total']['Total HeadCount'].sum()},
+            {'BW Property HeadCount': latest_data[latest_data['ReportGroup'] == 'BW Property Total']['Total HeadCount'].sum()},
+            {'SW Property HeadCount': latest_data[latest_data['ReportGroup'] == 'SW Property Total']['Total HeadCount'].sum()},
+        ]
 
         thirty_days_ago = latest_date - datetime.timedelta(days=30)
         date_range_index = pd.date_range(start=thirty_days_ago, end=latest_date, freq='D')
@@ -82,11 +87,11 @@ class BrandHealthProcessor(AbstractPageMetricOverviewProcessor):
         gm_latest_data = latest_data[latest_data['Brand Name (EN)'] == 'Galaxy Macau']
         sw_latest_data = latest_data[latest_data['Brand Name (EN)'] == 'StarWorld']
         scorecard_data = [
-            {'GM Brand TOMA': gm_latest_data[gm_latest_data['Brand KPI'] == 'TOMA']['Value'].values[0]},
-            {'GM Brand Preference': gm_latest_data[gm_latest_data['Brand KPI'] == 'Brand Preference']['Value'].values[0]},
-            {'GM Key Attribute (One-stop Integrated resort)': gm_latest_data[gm_latest_data['Brand KPI'] == 'One-stop integrated']['Value'].values[0]},
-            {'GM Key Attribute (Luxurious resort)': gm_latest_data[gm_latest_data['Brand KPI'] == 'Luxurious']['Value'].values[0]},
-            {'SW Total Brand Awareness (aided)': sw_latest_data[sw_latest_data['Brand KPI'] == 'TBA']['Value'].values[0]},
+            {'GM Brand TOMA': f"{gm_latest_data[gm_latest_data['Brand KPI'] == 'TOMA']['Value'].values[0]:.1f}%"},
+            {'GM Brand Preference': f"{gm_latest_data[gm_latest_data['Brand KPI'] == 'Brand Preference']['Value'].values[0]:.1f}%"},
+            {'GM Key Attribute (One-stop Integrated resort)': f"{gm_latest_data[gm_latest_data['Brand KPI'] == 'One-stop integrated']['Value'].values[0]:.1f}%"},
+            {'GM Key Attribute (Luxurious resort)': f"{gm_latest_data[gm_latest_data['Brand KPI'] == 'Luxurious']['Value'].values[0]:.1f}%"},
+            {'SW Total Brand Awareness (aided)': f"{sw_latest_data[sw_latest_data['Brand KPI'] == 'TBA']['Value'].values[0]:.1f}%"},
         ]
 
         # prepare chart data

@@ -1,37 +1,148 @@
-<div class="container-fluid">
-    <h1 class="text-center my-4">Warroom Dashboard</h1>
-    <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
-        <div class="carousel-inner">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warroom Dashboard</title>
+    <!-- 1. 引入 Bootstrap CSS 來修正輪播樣式 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* 為 Social Feed 頁面添加一些基本樣式 */
+        .masonry-grid {
+            column-count: 4;
+            column-gap: 1em;
+        }
+        .masonry-item {
+            background-color: #f8f9fa;
+            display: inline-block;
+            margin: 0 0 1em;
+            width: 100%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .masonry-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .card-content { padding: 10px; }
+        .card-title { font-size: 0.9em; margin-bottom: 8px; }
+        .user-info { display: flex; align-items: center; font-size: 0.8em; color: #555; }
+        .avatar { width: 24px; height: 24px; border-radius: 50%; margin-right: 8px; }
+        .search-bar-container { padding: 1rem 0; }
+        .search-bar-fake { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 20px; padding: 10px 15px; display: flex; align-items: center; font-size: 0.9em; }
+        .search-icon { margin-right: 10px; fill: #6c757d; }
+        .keyword-pill { background-color: #e9ecef; border-radius: 15px; padding: 5px 10px; margin-right: 5px; color: #495057; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h1 class="text-center my-4">Warroom Dashboard</h1>
+        <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
+            <div class="carousel-inner">
 
-            <!-- Page 1: Property Visitation Overview -->
-            <div class="carousel-item active">
-                {% set data = visitation_data %}
-                {% set chart_id = "metricsChart1" %}
-                {% include 'page_metrics_overview.html' %}
+                <!-- Page 1: Property Visitation Overview -->
+                <div class="carousel-item active">
+                    {% set data = visitation_data %}
+                    {% set chart_id = "metricsChart1" %}
+                    {% include 'page_metrics_overview.html' %}
+                </div>
+
+                <!-- Page 2: Brand Health Overview -->
+                <div class="carousel-item">
+                    {% set data = brand_data %}
+                    {% set chart_id = "metricsChart2" %}
+                    {% include 'page_metrics_overview.html' %}
+                </div>
+
+                <!-- Page 3: Social Media Feed -->
+                <div class="carousel-item">
+                    {% include 'page_social_feed.html' %}
+                </div>
+
             </div>
-
-            <!-- Page 2: Brand Health Overview -->
-            <div class="carousel-item">
-                {% set data = brand_data %}
-                {% set chart_id = "metricsChart2" %}
-                {% include 'page_metrics_overview.html' %}
-            </div>
-
-            <!-- Page 3: Social Media Feed -->
-            <div class="carousel-item">
-                {% include 'page_social_feed.html' %}
-            </div>
-
+            <!-- Carousel controls -->
+            <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
         </div>
-        <!-- Carousel controls -->
-        <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
-            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Previous</span>
-        </button>
-        <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
-            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span class="visually-hidden">Next</span>
-        </button>
     </div>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 2. 將所有 JavaScript 移至 body 結尾 -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const carousel = document.getElementById('dashboardCarousel');
+        const carouselInstance = bootstrap.Carousel.getOrCreateInstance(carousel);
+        const chartInstances = {};
+
+        function initializeChart(chartElement) {
+            if (!chartElement) return;
+            const chartId = chartElement.id;
+            
+            if (chartInstances[chartId]) {
+                return;
+            }
+
+            const chartDataString = chartElement.dataset.chartData;
+            if (!chartDataString) {
+                return;
+            }
+
+            try {
+                const chartData = JSON.parse(chartDataString);
+                const chartTitle = chartElement.dataset.chartTitle || 'Metrics Trend';
+                const ctx = chartElement.getContext('2d');
+                chartInstances[chartId] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.dates,
+                        datasets: chartData.datasets
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            title: { display: true, text: chartTitle }
+                        }
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to parse chart data or initialize chart:', e);
+            }
+        }
+
+        const initialActiveChart = carousel.querySelector('.carousel-item.active .metrics-chart');
+        initializeChart(initialActiveChart);
+
+        carousel.addEventListener('slid.bs.carousel', function (event) {
+            const activeSlide = event.relatedTarget;
+            const chartElement = activeSlide.querySelector('.metrics-chart');
+            if (chartElement) {
+                initializeChart(chartElement);
+            }
+        });
+
+        // 新增：點擊頁面任何地方即可切換到下一頁輪播
+        document.body.addEventListener('click', function(event) {
+            // 如果點擊的是輪播的控制按鈕，則不執行任何操作，以避免重複觸發
+            if (event.target.closest('.carousel-control-prev') || event.target.closest('.carousel-control-next')) {
+                return;
+            }
+            // 切換到下一個輪播項目
+            if (carouselInstance) {
+                carouselInstance.next();
+            }
+        });
+    });
+    </script>
+</body>
+</html>

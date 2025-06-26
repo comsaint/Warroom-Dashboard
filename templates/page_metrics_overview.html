@@ -20,33 +20,11 @@
             {% endif %}
         </div>
         <div class="mt-3 text-center">
-            <small>最新日期：{{ data.latest_date }}</small>
+            <small>Last Update：{{ data.latest_date }}</small>
         </div>
     </div>
     <!-- Right: Line Chart -->
     <div class="col-md-8">
-        <canvas id="{{ chart_id }}"></canvas>
+        <canvas id="{{ chart_id }}" class="metrics-chart" data-chart-title="{{ data.title | default('Metrics Trend', true) }}" data-chart-data='{{ data.chart_data | tojson | safe }}'></canvas>
     </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-(function() {
-    let chartData = JSON.parse('{{ data.chart_data | tojson | safe }}');
-    let ctx = document.getElementById('{{ chart_id }}').getContext('2d');
-    let safeChartData = chartData || { dates: [], datasets: [] };
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: safeChartData.dates,
-            datasets: safeChartData.datasets
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: { position: 'top' },
-                title: { display: true, text: 'Metrics Trend' }
-            }
-        }
-    });
-})();
-</script>

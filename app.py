@@ -46,9 +46,11 @@ def home():
     # 準備兩組 overview data
     df_visitation = DATA_SOURCES['property_visits'].load()
     visitation_data = PropertyVisitationProcessor(df_visitation).process()
+    visitation_data['title'] = 'Property Visitation'
 
     df_brand = DATA_SOURCES['brand_health'].load()
     brand_data = BrandHealthProcessor(df_brand).process()
+    brand_data['title'] = 'Brand Health'
 
     return render_template(
         "home.html",
