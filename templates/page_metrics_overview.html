@@ -1,6 +1,23 @@
-<div class="row">
+<style>
+    /*
+     * 使用 clamp() 讓字體大小能自適應螢幕寬度，並設定最大和最小值。
+     * clamp(最小值, 理想值, 最大值)
+     */
+    .card-title {
+        /* 例如：最小14.4px, 理想大小為螢幕寬度的1.5%, 最大18px */
+        font-size: clamp(0.9rem, 1.5vw, 1.125rem);
+    }
+
+    .card-text {
+        /* 例如：最小24px, 理想大小為螢幕寬度的4%, 最大36px */
+        font-size: clamp(1.5rem, 4vw, 2.25rem);
+        font-weight: bold;
+    }
+</style>
+
+<div class="row h-100 align-items-center">
     <!-- Left: Scorecards -->
-    <div class="col-md-4">
+    <div class="col-md-6">
         <div id="scorecards-container" class="row row-cols-2 g-3">
             {% if data.scorecard_data %}
                 {% for item in data.scorecard_data %}
@@ -24,7 +41,7 @@
         </div>
     </div>
     <!-- Right: Line Chart -->
-    <div class="col-md-8">
+    <div class="col-md-6 h-100">
         <canvas id="{{ chart_id }}" class="metrics-chart" data-chart-title="{{ data.title | default('Metrics Trend', true) }}" data-chart-data='{{ data.chart_data | tojson | safe }}'></canvas>
     </div>
 </div>

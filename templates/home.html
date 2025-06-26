@@ -37,27 +37,27 @@
     </style>
 </head>
 <body>
-    <div class="container-fluid">
+    <div class="container-fluid vh-100 d-flex flex-column">
         <h1 class="text-center my-4">Warroom Dashboard</h1>
-        <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
-            <div class="carousel-inner">
+        <div id="dashboardCarousel" class="carousel slide flex-grow-1" data-bs-ride="carousel" data-bs-interval="20000" style="min-height: 0;">
+            <div class="carousel-inner h-100">
 
                 <!-- Page 1: Property Visitation Overview -->
-                <div class="carousel-item active">
+                <div class="carousel-item active h-100 overflow-y-auto">
                     {% set data = visitation_data %}
                     {% set chart_id = "metricsChart1" %}
                     {% include 'page_metrics_overview.html' %}
                 </div>
 
                 <!-- Page 2: Brand Health Overview -->
-                <div class="carousel-item">
+                <div class="carousel-item h-100 overflow-y-auto">
                     {% set data = brand_data %}
                     {% set chart_id = "metricsChart2" %}
                     {% include 'page_metrics_overview.html' %}
                 </div>
 
                 <!-- Page 3: Social Media Feed -->
-                <div class="carousel-item">
+                <div class="carousel-item h-100 overflow-y-auto">
                     {% include 'page_social_feed.html' %}
                 </div>
 
@@ -110,8 +110,37 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'top' },
-                            title: { display: true, text: chartTitle }
+                            legend: {
+                                position: 'top',
+                                labels: {
+                                    font: {
+                                        size: 16
+                                    }
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: chartTitle,
+                                font: {
+                                    size: 20
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    font: {
+                                        size: 14
+                                    }
+                                }
+                            }
                         }
                     }
                 });

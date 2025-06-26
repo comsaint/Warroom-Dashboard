@@ -21,19 +21,26 @@ class PropertyVisitationProcessor(AbstractPageMetricOverviewProcessor):
             }
             self._validate_output(result)
             return result
+        
+        # only up up the last date where all 4 visitations are available
+        set_groups = {'GM Property Total', 'GM Casino Total', 'BW Property Total', 'SW Property Total'}
+        interest_df = self.df[self.df['ReportGroup'].isin(set_groups)]
+        group_counts_by_date = interest_df.groupby('GamingDate')['ReportGroup'].nunique()
+        dates_with_all_groups = group_counts_by_date[group_counts_by_date == len(set_groups)]
+        latest_date = dates_with_all_groups.index.max()
 
-        latest_date = self.df['GamingDate'].max()
-        latest_data = self.df[self.df['GamingDate'] == latest_date]
+        latest_data = interest_df[interest_df['GamingDate'] == latest_date]
+            
         scorecard_data = [
-            {'GM Property HeadCount': latest_data[latest_data['ReportGroup'] == 'GM Property Total']['Total HeadCount'].sum()},
-            {'GM Casino HeadCount': latest_data[latest_data['ReportGroup'] == 'GM Casino Total']['Total HeadCount'].sum()},
-            {'BW Property HeadCount': latest_data[latest_data['ReportGroup'] == 'BW Property Total']['Total HeadCount'].sum()},
-            {'SW Property HeadCount': latest_data[latest_data['ReportGroup'] == 'SW Property Total']['Total HeadCount'].sum()},
+            {'GM Property HeadCount': f"{latest_data[latest_data['ReportGroup'] == 'GM Property Total']['Total HeadCount'].sum():,}"},
+            {'GM Casino HeadCount': f"{latest_data[latest_data['ReportGroup'] == 'GM Casino Total']['Total HeadCount'].sum():,}"},
+            {'BW Property HeadCount': f"{latest_data[latest_data['ReportGroup'] == 'BW Property Total']['Total HeadCount'].sum():,}"},
+            {'SW Property HeadCount': f"{latest_data[latest_data['ReportGroup'] == 'SW Property Total']['Total HeadCount'].sum():,}"},
         ]
 
         thirty_days_ago = latest_date - datetime.timedelta(days=30)
         date_range_index = pd.date_range(start=thirty_days_ago, end=latest_date, freq='D')
-        chart_data_df = self.df[self.df['GamingDate'].between(thirty_days_ago, latest_date)]
+        chart_data_df = interest_df[interest_df['GamingDate'].between(thirty_days_ago, latest_date)]
 
         pivot_df = chart_data_df.pivot_table(
             index='GamingDate',

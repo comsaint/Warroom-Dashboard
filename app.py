@@ -19,7 +19,9 @@ app = Flask(__name__)
 # 根據環境變數載入設定
 # 這段程式碼現在可以無縫地從 .env 檔案或終端機設定中讀取 FLASK_ENV
 env = os.getenv('FLASK_ENV', 'development')
+logging.info(f"********** Running in '{env}' mode. **********")
 app.config.from_object(config_by_name[env])
+logging.info(f"********** Data folder set to: {app.config['DATA_FOLDER']} **********")
 
 # Read metric data
 # Internal:
@@ -50,7 +52,7 @@ def home():
 
     df_brand = DATA_SOURCES['brand_health'].load()
     brand_data = BrandHealthProcessor(df_brand).process()
-    brand_data['title'] = 'Brand Health'
+    brand_data['title'] = 'Brand Health - Top of Mind Awareness (TOMA)'
 
     return render_template(
         "home.html",
