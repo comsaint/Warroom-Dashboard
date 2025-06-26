@@ -1,205 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Warroom Dashboard</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
-        body { background: #222; color: #fff; }
-        .carousel-item { padding: 2rem; }
-        .container-fluid { max-width: 1400px; } /* Give some max width */
+<div class="container-fluid">
+    <h1 class="text-center my-4">Warroom Dashboard</h1>
+    <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
+        <div class="carousel-inner">
 
-        /* Styles for Page 1: Visitation Overview */
-        .metric-card { margin-bottom: 1rem; padding: 1rem; background: #333; border-radius: 1rem; height: 100%; }
-        .metric-title { font-size: 1.2rem; }
-        .metric-value { font-size: 2rem; font-weight: bold; }
-        #visitationChart { max-height: 400px; }
-
-        /* Styles for Page 2: Social Feed (Xiaohongshu style) */
-        .search-bar-container {
-            padding: 0 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .search-bar-fake {
-            background-color: #333;
-            border-radius: 25px;
-            padding: 0.5rem 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: text;
-        }
-        .search-icon {
-            color: #888;
-        }
-        .keyword-pill {
-            background-color: #444;
-            color: #eee;
-            padding: 0.25rem 0.75rem;
-            border-radius: 15px;
-            font-size: 0.9rem;
-        }
-
-        .masonry-grid {
-            column-count: 5; /* 5 columns to match XHS layout */
-            column-gap: 0.5rem; /* Smaller gap for more compact layout */
-        }
-        .masonry-item {
-            display: inline-block;
-            width: 100%;
-            margin-bottom: 0.5rem; /* Smaller margin for more compact layout */
-            background: #333;
-            border-radius: 0.75rem; /* Slightly smaller border radius */
-            overflow: hidden;
-            break-inside: avoid; /* Prevents items from breaking across columns */
-        }
-        .masonry-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .card-content {
-            padding: 0.5rem; /* Smaller padding for more compact cards */
-        }
-        .card-title {
-            font-size: 0.75rem; /* Smaller font size */
-            margin-bottom: 0.25rem; /* Smaller margin */
-            line-height: 1.2;
-            display: -webkit-box;
-            -webkit-line-clamp: 2; /* Limit to 2 lines */
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 0.2rem; /* Even smaller gap */
-            font-size: 0.65rem; /* Even smaller font size */
-            color: #ccc;
-        }
-        .avatar {
-            width: 16px; /* Much smaller avatar like XHS */
-            height: 16px;
-            border-radius: 50%;
-        }
-        
-        /* Responsive adjustments for masonry grid */
-        @media (max-width: 1400px) {
-            .masonry-grid { column-count: 4; }
-        }
-        @media (max-width: 1200px) {
-            .masonry-grid { column-count: 3; }
-        }
-        @media (max-width: 992px) {
-            .masonry-grid { column-count: 2; }
-        }
-        @media (max-width: 576px) {
-            .masonry-grid { column-count: 1; }
-        }
-
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <h1 class="text-center my-4">Warroom Dashboard</h1>
-        <h4 class="text-center mb-4">Latest Date: <span id="latest-date">Loading...</span></h4>
-        <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
-            <div class="carousel-inner">
-
-                <!-- Page 1: Metrics Overview -->
-                <div class="carousel-item active">
-                    {% include 'page_metrics_overview.html' %}
-                </div>
-
-                <!-- Page 2: Social Media Feed -->
-                <div class="carousel-item">
-                    {% include 'page_social_feed.html' %}
-                </div>
-
+            <!-- Page 1: Property Visitation Overview -->
+            <div class="carousel-item active">
+                {% set data = visitation_data %}
+                {% set chart_id = "metricsChart1" %}
+                {% include 'page_metrics_overview.html' %}
             </div>
+
+            <!-- Page 2: Brand Health Overview -->
+            <div class="carousel-item">
+                {% set data = brand_data %}
+                {% set chart_id = "metricsChart2" %}
+                {% include 'page_metrics_overview.html' %}
+            </div>
+
+            <!-- Page 3: Social Media Feed -->
+            <div class="carousel-item">
+                {% include 'page_social_feed.html' %}
+            </div>
+
         </div>
+        <!-- Carousel controls -->
+        <button class="carousel-control-prev" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#dashboardCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+        </button>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            
-            let metricsChart = null;
-
-            const updateDashboardPage1 = () => {
-                const scorecardContainer = document.getElementById('scorecards-container');
-                const chartCanvas = document.getElementById('metricsChart');
-
-                // Only fetch data if the elements for page 1 exist
-                if (!scorecardContainer || !chartCanvas) {
-                    return;
-                }
-
-                fetch('/api/data')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log("Data received for Page 1:", data); 
-
-                        // Update latest date
-                        document.getElementById('latest-date').textContent = data.latest_date;
-
-                        // Update Scorecards
-                        scorecardContainer.innerHTML = '';
-                        if (data.scorecard_data && data.scorecard_data.length > 0) {
-                            data.scorecard_data.forEach(metric => {
-                                scorecardContainer.innerHTML += `
-                                    <div class="col">
-                                        <div class="metric-card">
-                                            <div class="metric-title">${metric.ReportGroup}</div>
-                                            <div class="metric-value">${metric['Total HeadCount'].toLocaleString()}</div>
-                                        </div>
-                                    </div>
-                                `;
-                            });
-                        } else {
-                            scorecardContainer.innerHTML = '<div class="col-12 text-center">No scorecard data available.</div>';
-                        }
-
-                        // Update or Create Chart
-                        const ctx = chartCanvas.getContext('2d');
-                        const colors = ['#4bc0c0', '#ff6384', '#36a2eb', '#ffce56', '#9966ff', '#ff9f40'];
-                        if (data.chart_data && data.chart_data.datasets) {
-                            data.chart_data.datasets.forEach((dataset, index) => {
-                                dataset.borderColor = colors[index % colors.length];
-                            });
-                        }
-                        
-                        if(metricsChart) {
-                            metricsChart.data.labels = data.chart_data.dates;
-                            metricsChart.data.datasets = data.chart_data.datasets;
-                            metricsChart.update();
-                        } else {
-                            metricsChart = new Chart(ctx, {
-                                type: 'line',
-                                data: data.chart_data,
-                                options: {
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: { legend: { position: 'top', labels: { color: '#fff' } }, title: { display: true, text: 'Metrics Trend (Last 30 Days)', color: '#fff', font: { size: 18 } } },
-                                    scales: { x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
-                                }
-                            });
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error fetching or processing dashboard data for page 1:', error);
-                        document.getElementById('latest-date').textContent = 'Error loading data';
-                    });
-            };
-
-            updateDashboardPage1();
-            setInterval(updateDashboardPage1, 60000);
-        });
-    </script>
-</body>
-</html>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

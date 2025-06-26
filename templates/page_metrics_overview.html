@@ -2,12 +2,51 @@
     <!-- Left: Scorecards -->
     <div class="col-md-4">
         <div id="scorecards-container" class="row row-cols-2 g-3">
-            <!-- Scorecards will be injected here by JavaScript -->
-            <div class="col-12 text-center">Loading Scorecards...</div>
+            {% if data.scorecard_data %}
+                {% for item in data.scorecard_data %}
+                    <div class="col">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                {% for key, value in item.items() %}
+                                    <h6 class="card-title">{{ key }}</h6>
+                                    <p class="card-text">{{ value }}</p>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center">No Scorecards Available</div>
+            {% endif %}
+        </div>
+        <div class="mt-3 text-center">
+            <small>最新日期：{{ data.latest_date }}</small>
         </div>
     </div>
     <!-- Right: Line Chart -->
     <div class="col-md-8">
-        <canvas id="metricsChart"></canvas>
+        <canvas id="{{ chart_id }}"></canvas>
     </div>
-</div> 
+</div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+(function() {
+    let chartData = JSON.parse('{{ data.chart_data | tojson | safe }}');
+    let ctx = document.getElementById('{{ chart_id }}').getContext('2d');
+    let safeChartData = chartData || { dates: [], datasets: [] };
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: safeChartData.dates,
+            datasets: safeChartData.datasets
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                title: { display: true, text: 'Metrics Trend' }
+            }
+        }
+    });
+})();
+</script>
