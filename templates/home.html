@@ -107,9 +107,9 @@
         <div id="dashboardCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="20000">
             <div class="carousel-inner">
 
-                <!-- Page 1: Visitation Overview -->
+                <!-- Page 1: Metrics Overview -->
                 <div class="carousel-item active">
-                    {% include 'page_visitation_overview.html' %}
+                    {% include 'page_metrics_overview.html' %}
                 </div>
 
                 <!-- Page 2: Social Media Feed -->
@@ -124,11 +124,11 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
-            let visitationChart = null;
+            let metricsChart = null;
 
             const updateDashboardPage1 = () => {
                 const scorecardContainer = document.getElementById('scorecards-container');
-                const chartCanvas = document.getElementById('visitationChart');
+                const chartCanvas = document.getElementById('metricsChart');
 
                 // Only fetch data if the elements for page 1 exist
                 if (!scorecardContainer || !chartCanvas) {
@@ -174,18 +174,18 @@
                             });
                         }
                         
-                        if(visitationChart) {
-                            visitationChart.data.labels = data.chart_data.dates;
-                            visitationChart.data.datasets = data.chart_data.datasets;
-                            visitationChart.update();
+                        if(metricsChart) {
+                            metricsChart.data.labels = data.chart_data.dates;
+                            metricsChart.data.datasets = data.chart_data.datasets;
+                            metricsChart.update();
                         } else {
-                            visitationChart = new Chart(ctx, {
+                            metricsChart = new Chart(ctx, {
                                 type: 'line',
                                 data: data.chart_data,
                                 options: {
                                     responsive: true,
                                     maintainAspectRatio: false,
-                                    plugins: { legend: { position: 'top', labels: { color: '#fff' } }, title: { display: true, text: 'Visitation Trend (Last 30 Days)', color: '#fff', font: { size: 18 } } },
+                                    plugins: { legend: { position: 'top', labels: { color: '#fff' } }, title: { display: true, text: 'Metrics Trend (Last 30 Days)', color: '#fff', font: { size: 18 } } },
                                     scales: { x: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } }, y: { ticks: { color: '#fff' }, grid: { color: 'rgba(255,255,255,0.1)' } } }
                                 }
                             });
